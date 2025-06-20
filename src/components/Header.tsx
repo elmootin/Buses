@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, Menu, X, Compass } from 'lucide-react';
+import { User, LogOut, Menu, X, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
@@ -20,9 +20,11 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-amarillo-dorado rounded-full flex items-center justify-center">
-              <Compass className="h-6 w-6 text-azul-oscuro" />
-            </div>
+            <img 
+              src="/logo.svg" 
+              alt="NORTEEXPRESO" 
+              className="h-10 w-auto"
+            />
             <div>
               <span className="text-xl font-bold">NORTEEXPRESO</span>
               <div className="text-xs text-amarillo-dorado">Especialistas en el Norte</div>
@@ -31,8 +33,9 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="hover:text-amarillo-dorado transition-colors">
-              Inicio
+            <Link to="/" className="hover:text-amarillo-dorado transition-colors flex items-center space-x-1">
+              <Home className="h-4 w-4" />
+              <span>Inicio</span>
             </Link>
             <Link to="/search" className="hover:text-amarillo-dorado transition-colors">
               Buscar Viajes
@@ -96,10 +99,11 @@ export function Header() {
             <nav className="flex flex-col p-4 space-y-3">
               <Link
                 to="/"
-                className="py-2 hover:text-amarillo-dorado transition-colors"
+                className="py-2 hover:text-amarillo-dorado transition-colors flex items-center space-x-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Inicio
+                <Home className="h-4 w-4" />
+                <span>Inicio</span>
               </Link>
               <Link
                 to="/search"

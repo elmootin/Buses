@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
   Bus, 
@@ -10,7 +10,10 @@ import {
   Settings,
   TrendingUp,
   Clock,
-  Shield
+  Shield,
+  Home,
+  FileText,
+  Gamepad2
 } from 'lucide-react';
 
 // Admin components
@@ -20,9 +23,12 @@ import { BusesManager } from '../components/admin/BusesManager';
 import { RutasManager } from '../components/admin/RutasManager';
 import { PasajesManager } from '../components/admin/PasajesManager';
 import { PersonalManager } from '../components/admin/PersonalManager';
+import { ReportsManager } from '../components/admin/ReportsManager';
+import { LoyaltyGameManager } from '../components/admin/LoyaltyGameManager';
 
 export function AdminDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
@@ -32,6 +38,8 @@ export function AdminDashboard() {
     { name: 'Rutas', href: '/admin/rutas', icon: MapPin, current: location.pathname === '/admin/rutas' },
     { name: 'Pasajes', href: '/admin/pasajes', icon: CreditCard, current: location.pathname === '/admin/pasajes' },
     { name: 'Personal', href: '/admin/personal', icon: Users, current: location.pathname === '/admin/personal' },
+    { name: 'Reportes', href: '/admin/reportes', icon: FileText, current: location.pathname === '/admin/reportes' },
+    { name: 'Juego Fidelidad', href: '/admin/loyalty-game', icon: Gamepad2, current: location.pathname === '/admin/loyalty-game' },
   ];
 
   return (
@@ -41,11 +49,26 @@ export function AdminDashboard() {
         <div className="hidden md:flex md:w-64 md:flex-col">
           <div className="flex flex-col flex-grow bg-azul-oscuro overflow-y-auto">
             <div className="flex items-center h-16 flex-shrink-0 px-4 bg-primary-800">
-              <Bus className="h-8 w-8 text-amarillo-dorado" />
-              <span className="ml-2 text-xl font-bold text-white">NORTEEXPRESO</span>
+              <img 
+                src="/logo.svg" 
+                alt="NORTEEXPRESO" 
+                className="h-8 w-auto mr-2"
+              />
+              <span className="text-lg font-bold text-white">Admin Panel</span>
             </div>
             <div className="mt-5 flex-1 flex flex-col">
               <nav className="flex-1 px-2 pb-4 space-y-1">
+                {/* Botón para volver al inicio */}
+                <button
+                  onClick={() => navigate('/')}
+                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-primary-600 hover:text-white transition-colors w-full"
+                >
+                  <Home className="mr-3 flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-300" />
+                  Volver al Inicio
+                </button>
+                
+                <div className="border-t border-primary-600 my-2"></div>
+                
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
@@ -80,6 +103,8 @@ export function AdminDashboard() {
                 <Route path="/rutas" element={<RutasManager />} />
                 <Route path="/pasajes" element={<PasajesManager />} />
                 <Route path="/personal" element={<PersonalManager />} />
+                <Route path="/reportes" element={<ReportsManager />} />
+                <Route path="/loyalty-game" element={<LoyaltyGameManager />} />
               </Routes>
             </div>
           </main>

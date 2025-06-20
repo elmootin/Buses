@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { Star, Gift, Zap, Heart, TrendingUp, Award, CreditCard, Users, Calendar, MapPin } from 'lucide-react';
+import { Star, Gift, Zap, Heart, TrendingUp, Award, CreditCard, Users, Calendar, MapPin, Gamepad2, Trophy, Target } from 'lucide-react';
 
 export function LoyaltyPage() {
   const [userPoints, setUserPoints] = useState(2450);
   const [userLevel, setUserLevel] = useState('Oro');
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(true); // Cambiado a true para mostrar el dashboard
+  const [showGame, setShowGame] = useState(false);
+  const [gameType, setGameType] = useState('memory');
+  const [gameActive, setGameActive] = useState(false);
+  const [gamePoints, setGamePoints] = useState(0);
+
+  // Memory Game State
+  const [memoryCards, setMemoryCards] = useState([]);
+  const [flippedCards, setFlippedCards] = useState([]);
+  const [matchedCards, setMatchedCards] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   const levels = [
     {
@@ -72,16 +82,52 @@ export function LoyaltyPage() {
       type: 'earned'
     },
     {
+      date: '14 Ene 2024',
+      description: 'Juego completado: Memoria Norteña',
+      points: '+50 puntos',
+      type: 'game'
+    },
+    {
       date: '10 Ene 2024',
       description: 'Descuento 10% canjeado',
       points: '-500 puntos',
       type: 'redeemed'
     },
     {
+      date: '08 Ene 2024',
+      description: 'Trivia del Norte completada',
+      points: '+75 puntos',
+      type: 'game'
+    },
+    {
       date: '05 Ene 2024',
       description: 'Viaje Lima - Cusco',
       points: '+200 puntos',
       type: 'earned'
+    }
+  ];
+
+  const games = [
+    {
+      id: 'memory',
+      name: 'Memoria Norteña',
+      description: 'Encuentra las parejas de destinos',
+      icon: Target,
+      maxPoints: 100
+    },
+    {
+      id: 'trivia',
+      name: 'Trivia del Norte',
+      description: 'Preguntas sobre el norte del Perú',
+      icon: Trophy,
+      maxPoints: 150
+    },
+    {
+      id: 'wheel',
+      name: 'Ruleta de la Suerte',
+      description: 'Gira y gana puntos',
+      icon: Zap,
+      maxPoints: 200
     }
   ];
 
@@ -108,6 +154,72 @@ export function LoyaltyPage() {
     const currentLevel = getCurrentLevel();
     const progress = ((userPoints - currentLevel.minPoints) / (nextLevel.minPoints - currentLevel.minPoints)) * 100;
     return Math.min(progress, 100);
+  };
+
+  const initializeMemoryGame = () => {
+    const destinations = ['Trujillo', 'Chiclayo', 'Piura', 'Cajamarca', 'Tumbes', 'Chimbote'];
+    const cards = [...destinations, ...destinations]
+      .sort(() => Math.random() - 0.5)
+      .map((dest, index) => ({ id: index, destination: dest }));
+    setMemoryCards(cards);
+    setFlippedCards([]);
+    setMatchedCards([]);
+    setGamePoints(0);
+    setTimeLeft(60);
+  };
+
+  const startGame = (gameId) => {
+    setGameType(gameId);
+    setGameActive(true);
+    
+    if (gameId === 'memory') {
+      initializeMemoryGame();
+      
+      // Start timer
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            endGame();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
+
+  const endGame = () => {
+    setGameActive(false);
+    setUserPoints(prev => prev + gamePoints);
+    alert(`¡Juego terminado! Ganaste ${gamePoints} puntos.`);
+  };
+
+  const handleMemoryCardClick = (cardId) => {
+    if (flippedCards.length === 2 || flippedCards.includes(cardId) || matchedCards.includes(cardId)) {
+      return;
+    }
+
+    const newFlipped = [...flippedCards, cardId];
+    setFlippedCards(newFlipped);
+
+    if (newFlipped.length === 2) {
+      const [first, second] = newFlipped;
+      const firstCard = memoryCards.find(card => card.id === first);
+      const secondCard = memoryCards.find(card => card.id === second);
+
+      if (firstCard.destination === secondCard.destination) {
+        setMatchedCards(prev => [...prev, first, second]);
+        setGamePoints(prev => prev + 20);
+        setFlippedCards([]);
+
+        if (matchedCards.length + 2 === memoryCards.length) {
+          setTimeout(endGame, 1000);
+        }
+      } else {
+        setTimeout(() => setFlippedCards([]), 1000);
+      }
+    }
   };
 
   return (
@@ -208,6 +320,127 @@ export function LoyaltyPage() {
                 </div>
               </div>
 
+              {/* Games Section */}
+              <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-azul-oscuro flex items-center">
+                    <Gamepad2 className="h-6 w-6 mr-2 text-amarillo-dorado" />
+                    Juegos para Ganar Puntos
+                  </h3>
+                  {showGame && (
+                    <button
+                      onClick={() => {
+                        setShowGame(false);
+                        setGameActive(false);
+                      }}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Volver
+                    </button>
+                  )}
+                </div>
+
+                {!showGame ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {games.map((game) => (
+                      <div key={game.id} className="bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-azul-oscuro rounded-full flex items-center justify-center mx-auto mb-4">
+                            <game.icon className="h-8 w-8 text-amarillo-dorado" />
+                          </div>
+                          <h4 className="font-bold text-azul-oscuro mb-2">{game.name}</h4>
+                          <p className="text-sm text-gris-suave mb-4">{game.description}</p>
+                          <div className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full mb-4">
+                            Hasta {game.maxPoints} puntos
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowGame(true);
+                              startGame(game.id);
+                            }}
+                            className="w-full bg-azul-oscuro text-white py-2 rounded-lg hover:bg-primary-600 transition-colors"
+                          >
+                            Jugar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Game Area */
+                  <div>
+                    {gameType === 'memory' && gameActive && (
+                      <div>
+                        <div className="flex justify-between items-center mb-6">
+                          <h4 className="text-xl font-bold text-azul-oscuro">Memoria Norteña</h4>
+                          <div className="flex space-x-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-azul-oscuro">{timeLeft}s</div>
+                              <div className="text-sm text-gris-suave">Tiempo</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-amarillo-dorado">{gamePoints}</div>
+                              <div className="text-sm text-gris-suave">Puntos</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
+                          {memoryCards.map((card) => (
+                            <button
+                              key={card.id}
+                              onClick={() => handleMemoryCardClick(card.id)}
+                              className={`aspect-square rounded-lg text-white font-bold text-sm transition-all ${
+                                flippedCards.includes(card.id) || matchedCards.includes(card.id)
+                                  ? 'bg-azul-oscuro'
+                                  : 'bg-gray-400 hover:bg-gray-500'
+                              }`}
+                            >
+                              {(flippedCards.includes(card.id) || matchedCards.includes(card.id)) 
+                                ? card.destination 
+                                : '?'
+                              }
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {gameType === 'trivia' && (
+                      <div className="text-center">
+                        <h4 className="text-xl font-bold text-azul-oscuro mb-6">Trivia del Norte</h4>
+                        <p className="text-gris-suave mb-4">¡Próximamente! Este juego estará disponible pronto.</p>
+                        <button
+                          onClick={() => {
+                            setGamePoints(75);
+                            endGame();
+                          }}
+                          className="bg-amarillo-dorado text-azul-oscuro px-6 py-3 rounded-lg font-bold hover:bg-yellow-500 transition-colors"
+                        >
+                          Simular Juego (+75 puntos)
+                        </button>
+                      </div>
+                    )}
+
+                    {gameType === 'wheel' && (
+                      <div className="text-center">
+                        <h4 className="text-xl font-bold text-azul-oscuro mb-6">Ruleta de la Suerte</h4>
+                        <p className="text-gris-suave mb-4">¡Próximamente! Este juego estará disponible pronto.</p>
+                        <button
+                          onClick={() => {
+                            setGamePoints(Math.floor(Math.random() * 200) + 50);
+                            endGame();
+                          }}
+                          className="bg-amarillo-dorado text-azul-oscuro px-6 py-3 rounded-lg font-bold hover:bg-yellow-500 transition-colors"
+                        >
+                          Simular Juego (50-250 puntos)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Levels */}
               <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h3 className="text-2xl font-bold text-azul-oscuro mb-6">Niveles del Programa</h3>
@@ -298,7 +531,8 @@ export function LoyaltyPage() {
                     <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center">
                         <div className={`w-3 h-3 rounded-full mr-4 ${
-                          activity.type === 'earned' ? 'bg-green-500' : 'bg-red-500'
+                          activity.type === 'earned' ? 'bg-green-500' : 
+                          activity.type === 'game' ? 'bg-blue-500' : 'bg-red-500'
                         }`}></div>
                         <div>
                           <p className="font-medium text-azul-oscuro">{activity.description}</p>
@@ -306,7 +540,7 @@ export function LoyaltyPage() {
                         </div>
                       </div>
                       <span className={`font-bold ${
-                        activity.type === 'earned' ? 'text-green-600' : 'text-red-600'
+                        activity.type === 'redeemed' ? 'text-red-600' : 'text-green-600'
                       }`}>
                         {activity.points}
                       </span>
